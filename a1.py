@@ -1,5 +1,5 @@
 from numpy import *
-
+#from numpy import shape
 
 '''
    PART 1: Warm-up
@@ -34,6 +34,9 @@ def square(a):
     '''
 
     ## YOUR CODE GOES HERE
+    n,m = shape(a)  #save value of elements in tuple shape(a) in variables n, m
+    return n == m
+
     raise Exception("Function not implemented")
 
 
@@ -131,7 +134,37 @@ def gauss_multiple(a, b):
     '''
 
     ## YOUR CODE GOES HERE
+    gauss_multiple_elimin(a,b,)
+    return gauss_substitution(a,b)
     raise Exception("Function not implemented")
+
+
+#for gauss_multiple
+def gauss_multiple_elimin(a,b,verbose=False):
+    n, m = shape(a)     #must be square
+    n2, m2 = shape(b)   #does not need to be square
+    assert(n==n2)
+    for k in range (0,n-1):     #range(start,stop[,step])
+        for i in range (k+1, n):
+            assert(a[k,k]!=0) #verify what to do later
+            if(a[i,k]!=0): #no need to do anything when lambda is 0
+                lmbda = a[i,k]/a[k,k]
+                a[i,k:n]=a[i,k:n] - lmbda * a[k,k:n] #apply operation to row i of A
+                b[i,:]=b[i,:] - lmbda * b[k,:] #apply operation to row i of b
+            if verbose:
+                print('a:\n',a,'\nb:\n',b,'\n')
+
+
+def gauss_substitution(a,b):
+    n, m = shape(a)
+    n2, m2 = shape(b)
+    assert (n==n2)
+    x = zeros([n,m2], dtype= float_)
+    for i in range (n-1,-1,-1): #decreasing index, #range(start,stop[,step]) -> iterates over every row of solution matrix x
+        for j in range(0,m2):
+            x[i,j]=(b[i,j] - dot(a[i,i+1:],x[i+1:,j]) ) / a[i,i]
+    #return n*m system of solutions
+    return x
 
 
 def gauss_multiple_pivot(a, b):
@@ -145,7 +178,42 @@ def gauss_multiple_pivot(a, b):
     '''
 
     ## YOUR CODE GOES HERE
+    gauss_elimin_pivot(a,b)
+    return gauss_substitution(a,b)
     raise Exception("Function not implemented")
+
+
+#for gauss_multiple_pivot
+def swap(a, i, j):
+    if len(shape(a)) == 1:
+        a[i],a[j] = a[j],a[i] # unpacking
+    else:
+        a[[i, j], :] = a[[j, i], :]
+
+#for gauss_multiple_pivot
+def gauss_elimin_pivot(a,b,verbose=False):
+    n, m = shape(a)     #must be square
+    n2, m2 = shape(b)   #does not need to be square
+    assert(n==n2)
+    #Used for pivoting
+    s = zeros(n, dtype =float_)
+    for i in range (0,n):
+        s[i] = max(abs(a[i, :])) #max of row i in A
+    for k in range (0,n-1):     #range(start,stop[,step])
+        #Pivoting
+        p = argmax(abs(a[k:, k]) / s[k:]) + k
+        swap(a,p,k) #swap rows in matrix A
+        swap(b,p,k) #swap rows in matrix b
+        swap(s,p,k) #swap rows in vector  s
+        #Apply row operations
+        for i in range (k+1, n):
+            assert(a[k,k]!=0) #verify what to do later
+            if(a[i,k]!=0): #no need to do anything when lambda is 0
+                lmbda = a[i,k]/a[k,k]
+                a[i,k:n]=a[i,k:n] - lmbda * a[k,k:n] #apply operation to row i of A
+                b[i,:]=b[i,:] - lmbda * b[k,:] #apply operation to row i of b
+            if verbose:
+                print('a:\n', a, '\nb:\n', b, '\n')
 
 
 def matrix_invert(a):
