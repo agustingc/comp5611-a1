@@ -110,7 +110,71 @@ def tridiag_solver_n(n):
     '''
 
     ## YOUR CODE GOES HERE
+    #Verify that matrix will be at least 3x3
+    assert (n>2)
+    a=zeros((n,n), dtype=float_)
+    b = zeros(n, dtype=float_)
+    #Populate matrices a and b
+    for i in range (0,n):
+        if i==0:
+            a[i,0]=4
+            a[i,1]=-1
+            b[i] =9
+        elif i==n-1:
+            a[i,n-2]=-1
+            a[i,n-1]=4
+            b[i]=5
+        else:
+            a[i,i-1] = -1
+            a[i,i] = 4
+            a[i,i+1] = -1
+            b[i] = 5
+    #TEST
+    print('A:\n', a, '\n')
+    print('b:\n', b, '\n')
+    #Convert to diagonal vectors
+    c = diagonal(a,-1).copy()
+    d = diagonal(a,0).copy()
+    e = diagonal(a,1).copy()
+    c = append(c,0)
+    e = append(e,0)
+    print('c: ', c, 'd: ', d, 'e: ', e, '\n')
+    tridiag_decomp(c, d, e)
+    print('c: ', c, 'd: ', d, 'e: ', e, '\n')
+    return tridiag_solve(c, d, e, b)
     raise Exception("Function not implemented")
+
+#Code from Course Notes
+def tridiag_decomp(c, d, e):
+    assert(len(c) == len(d) == len(e))
+    n = len(c)
+    for k in range(1, n):
+        lambd = c[k-1]/d[k-1]
+        d[k] -= lambd*e[k-1]
+        c[k-1] = lambd
+
+#Code from Course Notes
+def tridiag_solve(c, d, e, b): # watch out, input has to be in LU form!
+    assert(len(c) == len(d) == len(e) == len(b))
+    n = len(c)
+    # forward substitution
+    y = zeros(n, dtype=float_)
+    y[0]=b[0]
+    for i in range(1, n):
+        y[i] = b[i]-c[i-1]*y[i-1] # Here we use y to store y
+    # back substitution
+    x = zeros(n, dtype=float_)
+    x[n-1] = y[n-1]/d[n-1] # Here we use x to store x
+    for i in range (n-2, -1, -1):
+        x[i] = (y[i]-e[i]*x[i+1])/d[i]
+    return x
+
+'''
+#Code from Course Notes
+def tridiag_solver(c, d, e, b): # complete solver for tridiagonal systems
+    tridiag_decomp(c, d, e)
+    tridiag_solve(c, d, e, b)
+'''
 
 
 '''
@@ -225,6 +289,10 @@ def matrix_invert(a):
       Hint: Remember that the inverse of A is the solution of n linear systems of n 
             equations.
     '''
-
     ## YOUR CODE GOES HERE
+    #Check if matrix is square
+    assert(square(a))
+    n, m = shape(a)
+    i = identity(n,dtype=float_)
+    return gauss_multiple_pivot(a,i)
     raise Exception("Function not implemented")
