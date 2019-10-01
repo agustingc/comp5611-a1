@@ -86,7 +86,64 @@ def fit_poly(points):
     '''
 
     ## YOUR CODE GOES HERE
+    #Get degree of polynomial
+    n = len(points)
+    m = n - 1
+    #Populate x_data, y_data by unpacking point (array of tuples)
+    x_data = zeros(n,dtype=float_)
+    y_data = zeros(n, dtype=float_)
+    for i in range(0,n):
+        x_data[i], y_data[i] = points[i]
+    #For convenience, s[i] will contain sum_i x_i^h, where h = 0, 2m, i = 0, 1, ..., n
+    # and b[i] will contain sum_i(x_i^k*y_i) where k = 0,1, ..., m and i = 0, 1, ..., n
+    s = zeros(2*(m+1), dtype=float_)
+    b = zeros(m+1, dtype=float_)
+    for i in range(2*m):
+        s[i]=sum(x_data**i)
+        if i<m: #Populate b for the first m iterations
+            b[i] = sum(y_data*x_data**i)
+    # Populate the coefficient matrix A
+    A = zeros((m,m), dtype=float_)
+    for k in range (0,m):
+        for j in range (0,m):
+            A[k,j]=s[j+k]
+    #Verify that a single solution exists
+    assert(determinant_recursive(A)!=0.0)
+    #Solve system of linear equations
+    a = gauss_multiple_pivot(A,b)
+    return a
     raise Exception("Function not implemented")
+
+#From Internet
+def determinant_recursive(A, total=0):
+    # Section 1: store indices in list for row referencing
+    indices = list(range(len(A)))
+
+    # Section 2: when at 2x2 submatrices recursive calls end
+    if len(A) == 2 and len(A[0]) == 2:
+        val = A[0][0] * A[1][1] - A[1][0] * A[0][1]
+        return val
+
+    # Section 3: define submatrix for focus column and
+    #      call this function
+    for fc in indices:  # A) for each focus column, ...
+        # find the submatrix ...
+        As = A.copy()  # B) make a copy, and ...
+        As = As[1:]  # ... C) remove the first row
+        height = len(As)  # D)
+
+        for i in range(height):
+            # E) for each remaining row of submatrix ...
+            #     remove the focus column elements
+            As[i] = As[i][0:fc] + As[i][fc + 1:]
+
+        sign = (-1) ** (fc % 2)  # F)
+        # G) pass submatrix recursively
+        sub_det = determinant_recursive(As)
+        # H) total all returns from recursion
+        total += sign * A[0][fc] * sub_det
+
+    return total
 
 
 '''
@@ -130,21 +187,19 @@ def tridiag_solver_n(n):
             a[i,i+1] = -1
             b[i] = 5
     #TEST
-    print('A:\n', a, '\n')
-    print('b:\n', b, '\n')
+    #print('A:\n', a, '\n')
+    #print('b:\n', b, '\n')
     #Convert to diagonal vectors
     c = diagonal(a,-1).copy()
     d = diagonal(a,0).copy()
     e = diagonal(a,1).copy()
     c = append(c,0)
     e = append(e,0)
-    print('c: ', c, 'd: ', d, 'e: ', e, '\n')
     tridiag_decomp(c, d, e)
-    print('c: ', c, 'd: ', d, 'e: ', e, '\n')
     return tridiag_solve(c, d, e, b)
     raise Exception("Function not implemented")
 
-#Code from Course Notes
+#Code from course notes
 def tridiag_decomp(c, d, e):
     assert(len(c) == len(d) == len(e))
     n = len(c)
@@ -153,7 +208,7 @@ def tridiag_decomp(c, d, e):
         d[k] -= lambd*e[k-1]
         c[k-1] = lambd
 
-#Code from Course Notes
+#Code from course notes slightly modified
 def tridiag_solve(c, d, e, b): # watch out, input has to be in LU form!
     assert(len(c) == len(d) == len(e) == len(b))
     n = len(c)
@@ -168,13 +223,6 @@ def tridiag_solve(c, d, e, b): # watch out, input has to be in LU form!
     for i in range (n-2, -1, -1):
         x[i] = (y[i]-e[i]*x[i+1])/d[i]
     return x
-
-'''
-#Code from Course Notes
-def tridiag_solver(c, d, e, b): # complete solver for tridiagonal systems
-    tridiag_decomp(c, d, e)
-    tridiag_solve(c, d, e, b)
-'''
 
 
 '''
