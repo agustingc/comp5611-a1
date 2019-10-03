@@ -63,6 +63,7 @@ def fit_poly_2(points):
     '''
 
     ## YOUR CODE GOES HERE
+    return fit_poly(points)
     raise Exception("Function not implemented")
 
 
@@ -242,7 +243,7 @@ def gauss_multiple_elimin(a,b,verbose=False):
 
 def gauss_substitution(a,b):
     n, m = shape(a)
-    #b
+    #Verify the n*n dimensions of B
     n2=1
     m2=1
     if len(shape(b))==1:
@@ -300,8 +301,8 @@ def gauss_elimin_pivot(a,b,verbose=False):
     #A
     n, m = shape(a)     #must be square
     #B
-    n2=0
-    m2=0
+    n2=1
+    m2=1
     if len(shape(b))==1:
         n2, = shape(b)   #does not need to be square
     elif len(shape(b))==2:
@@ -314,7 +315,7 @@ def gauss_elimin_pivot(a,b,verbose=False):
     for i in range (0,n):
         s[i] = max(abs(a[i, :])) #max of row i in A
     # Pivoting
-    print(a)
+    #print(a)
     for k in range (0,n-1):     #range(start,stop[,step])
         p = argmax(abs(a[k:, k]) / s[k:]) + k
         swap(a,p,k) #swap rows in matrix A
@@ -326,7 +327,7 @@ def gauss_elimin_pivot(a,b,verbose=False):
             if(a[i,k]!=0): #no need to do anything when lambda is 0
                 lmbda = a[i,k]/a[k,k]
                 a[i,k:n]=a[i,k:n] - lmbda * a[k,k:n] #apply operation to row i of A
-                if m2==0:
+                if m2==1:
                     b[i] = b[i] - lmbda * b[k]  # apply operation to row i of b
                 else:
                     b[i,:]=b[i,:] - lmbda * b[k,:] #apply operation to row i of b
