@@ -88,62 +88,35 @@ def fit_poly(points):
     ## YOUR CODE GOES HERE
     #Get degree of polynomial
     n = len(points)
+    print('n: ', n)
     m = n - 1
     #Populate x_data, y_data by unpacking point (array of tuples)
     x_data = zeros(n,dtype=float_)
     y_data = zeros(n, dtype=float_)
     for i in range(0,n):
         x_data[i], y_data[i] = points[i]
-    #For convenience, s[i] will contain sum_i x_i^h, where h = 0, 2m, i = 0, 1, ..., n
-    # and b[i] will contain sum_i(x_i^k*y_i) where k = 0,1, ..., m and i = 0, 1, ..., n
-    s = zeros(2*(m+1), dtype=float_)
+    print('x_data :' , x_data)
+    print('\ny_data: ', y_data)
+    ''' For convenience, s[i] will contain sum_i x_i^h, where h = 0, 2m, i = 0, 1, ..., n
+        and b[i] will contain sum_i(x_i^k*y_i) where k = 0,1, ..., m and i = 0, 1, ..., n
+    '''
+    s = zeros(2*m+1, dtype=float_)
     b = zeros(m+1, dtype=float_)
-    for i in range(2*m):
+    for i in range(2*m+1):
         s[i]=sum(x_data**i)
-        if i<m: #Populate b for the first m iterations
+        if i<(m+1): #Populate b for the first m iterations
             b[i] = sum(y_data*x_data**i)
+    print('\ns: ', s)
     # Populate the coefficient matrix A
-    A = zeros((m,m), dtype=float_)
-    for k in range (0,m):
-        for j in range (0,m):
+    A = zeros((m+1,m+1), dtype=float_)
+    for k in range (0,m+1):
+        for j in range (0,m+1):
             A[k,j]=s[j+k]
-    #Verify that a single solution exists
-    assert(determinant_recursive(A)!=0.0)
+    print('\nA: ', A)
     #Solve system of linear equations
     a = gauss_multiple_pivot(A,b)
     return a
     raise Exception("Function not implemented")
-
-#From Internet
-def determinant_recursive(A, total=0):
-    # Section 1: store indices in list for row referencing
-    indices = list(range(len(A)))
-
-    # Section 2: when at 2x2 submatrices recursive calls end
-    if len(A) == 2 and len(A[0]) == 2:
-        val = A[0][0] * A[1][1] - A[1][0] * A[0][1]
-        return val
-
-    # Section 3: define submatrix for focus column and
-    #      call this function
-    for fc in indices:  # A) for each focus column, ...
-        # find the submatrix ...
-        As = A.copy()  # B) make a copy, and ...
-        As = As[1:]  # ... C) remove the first row
-        height = len(As)  # D)
-
-        for i in range(height):
-            # E) for each remaining row of submatrix ...
-            #     remove the focus column elements
-            As[i] = As[i][0:fc] + As[i][fc + 1:]
-
-        sign = (-1) ** (fc % 2)  # F)
-        # G) pass submatrix recursively
-        sub_det = determinant_recursive(As)
-        # H) total all returns from recursion
-        total += sign * A[0][fc] * sub_det
-
-    return total
 
 
 '''
@@ -269,14 +242,29 @@ def gauss_multiple_elimin(a,b,verbose=False):
 
 def gauss_substitution(a,b):
     n, m = shape(a)
-    n2, m2 = shape(b)
+    #b
+    n2=1
+    m2=1
+    if len(shape(b))==1:
+        n2, = shape(b)
+    elif len(shape(b))==2:
+        n2, m2 = shape(b)
+    else:
+        raise Exception("B has more than 2 dimensions")
     assert (n==n2)
-    x = zeros([n,m2], dtype= float_)
-    for i in range (n-1,-1,-1): #decreasing index, #range(start,stop[,step]) -> iterates over every row of solution matrix x
-        for j in range(0,m2):
-            x[i,j]=(b[i,j] - dot(a[i,i+1:],x[i+1:,j]) ) / a[i,i]
-    #return n*m system of solutions
-    return x
+    if m2>1:
+        x = zeros([n,m2], dtype= float_)
+        for i in range (n-1,-1,-1): #decreasing index, #range(start,stop[,step]) -> iterates over every row of solution matrix x
+            for j in range(0,m2):
+                x[i,j]=(b[i,j] - dot(a[i,i+1:],x[i+1:,j]) ) / a[i,i]
+        #return n*m system of solutions
+        return x
+    else:
+        x = zeros([n], dtype= float_)
+        for i in range (n-1,-1,-1): #decreasing index, #range(start,stop[,step]) -> iterates over every row of solution matrix x
+            x[i] = (b[i] - dot(a[i,i+1:],x[i + 1:]))/a[i, i]
+        #return n*m system of solutions
+        return x
 
 
 def gauss_multiple_pivot(a, b):
@@ -291,6 +279,11 @@ def gauss_multiple_pivot(a, b):
 
     ## YOUR CODE GOES HERE
     gauss_elimin_pivot(a,b)
+    ''' The determinant of a triangular matrix 
+        is the product of the diagonal elements
+    '''
+    det = prod(diagonal(a))
+    assert(det!=0)
     return gauss_substitution(a,b)
     raise Exception("Function not implemented")
 
@@ -304,15 +297,25 @@ def swap(a, i, j):
 
 #for gauss_multiple_pivot
 def gauss_elimin_pivot(a,b,verbose=False):
+    #A
     n, m = shape(a)     #must be square
-    n2, m2 = shape(b)   #does not need to be square
+    #B
+    n2=0
+    m2=0
+    if len(shape(b))==1:
+        n2, = shape(b)   #does not need to be square
+    elif len(shape(b))==2:
+        n2, m2 = shape(b)   #does not need to be square
+    else:
+        raise Exception("B has more than 2 dimensions.")
     assert(n==n2)
     #Used for pivoting
     s = zeros(n, dtype =float_)
     for i in range (0,n):
         s[i] = max(abs(a[i, :])) #max of row i in A
+    # Pivoting
+    print(a)
     for k in range (0,n-1):     #range(start,stop[,step])
-        #Pivoting
         p = argmax(abs(a[k:, k]) / s[k:]) + k
         swap(a,p,k) #swap rows in matrix A
         swap(b,p,k) #swap rows in matrix b
@@ -323,7 +326,10 @@ def gauss_elimin_pivot(a,b,verbose=False):
             if(a[i,k]!=0): #no need to do anything when lambda is 0
                 lmbda = a[i,k]/a[k,k]
                 a[i,k:n]=a[i,k:n] - lmbda * a[k,k:n] #apply operation to row i of A
-                b[i,:]=b[i,:] - lmbda * b[k,:] #apply operation to row i of b
+                if m2==0:
+                    b[i] = b[i] - lmbda * b[k]  # apply operation to row i of b
+                else:
+                    b[i,:]=b[i,:] - lmbda * b[k,:] #apply operation to row i of b
             if verbose:
                 print('a:\n', a, '\nb:\n', b, '\n')
 
